@@ -146,7 +146,7 @@ In this way:
 
 - `call()` will log 'Hello AAAAAAAAAAAAA'
 - Why? Because `sayHello` function **closes** the environment
-- Because `sayHello` function use the local variable `name` which is copy of the gobal variable `name` (except you store an Object)
+- Because `sayHello` function use the local variable `name` which is copy of the gobal variable `name` (except you store an Object or Array)
 - This is closures in JavaScript
 
 ## Other (Closure with Object)
