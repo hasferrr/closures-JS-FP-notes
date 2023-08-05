@@ -7,8 +7,8 @@ Closures in JavaScript is different from closures in other purely functional pro
 - [What happened if you 'redefine' variable `name`, after define variable `call`?](#what-happened-if-you-redefine-variable-name-after-define-variable-call)
 - [Mutate before define `call` function](#mutate-before-define-call-function)
 - [Correct way to create a closure in JavaScript](#correct-way-to-create-a-closure-in-javascript)
-- [Other (Closure with Object)](#other-closure-with-object)
-- [Other (Array)](#other-array)
+- [Closure with an Object](#closure-with-an-object)
+- [Closure with an Array](#closure-with-an-array)
 
 ## Terminology
 
@@ -38,7 +38,7 @@ Closures in JavaScript is different from closures in other purely functional pro
 JavaScript code:
 
 ```js
-let name = 'AAAAAAAAAAAAA'
+let name = 'AAA'
 
 const sayHello = () => {
   const text = 'Hello, ' + name
@@ -46,15 +46,15 @@ const sayHello = () => {
 }
 
 const call = sayHello()
-call()  // 'Hello AAAAAAAAAAAAA'
+call()  // 'Hello AAA'
 ```
 
 - Inside the `sayHello` function, the local variable `text` will look for the `name` variable and map whatever the `name` variable is mapping to, instead of copying the `name` variable.
 - because `text` uses free variable `name`
-- `text` will be **'Hello, AAAAAAAAAAAAA'**
+- `text` will be **'Hello, AAA'**
 - `sayHello` function returns the function that logs the `text`
 - In global scope, we create variable `call` (which is a function returned from `sayHello`)
-- When `call` is executed, it will logs **'Hello AAAAAAAAAA'**
+- When `call` is executed, it will logs **'Hello AAA'**
 - Easy
 
 ## What happens  if you 'redefine' variable `name`, after defining variable `call`?
@@ -62,7 +62,7 @@ call()  // 'Hello AAAAAAAAAAAAA'
 #### JavaScript code:
 
 ```js
-let name = 'AAAAAAAAAAAAA'
+let name = 'AAA'
 
 const sayHello = () => {
   const text = 'Hello, ' + name
@@ -70,10 +70,10 @@ const sayHello = () => {
 }
 
 const call = sayHello()
-call()      // 'Hello AAAAAAAAAAAAA'
+call()      // 'Hello AAA'
 
-name = 'BBBBBBBBBBBB'                 // <---------- Mutate Here
-call()      // 'Hello BBBBBBBBBBBBB'
+name = 'BBBBBBBBBBBB'                 // <---------- Mutation Here
+call()      // 'Hello BBB'
 ```
 
 - `call` is not closures
@@ -85,172 +85,171 @@ call()      // 'Hello BBBBBBBBBBBBB'
 #### Functional Programming code:
 
 ```js
-name = 'AAAAAAAAAAAAA'            // old name
+name = 'AAA'                    // old name
 
 function sayHello()
-  text = 'Hello, ' + name
-  return () => console.log(text)
+text = 'Hello, ' + name
+return () => console.log(text)
 
 call = sayHello()
-call()  // 'Hello AAAAAAAAAAAAA'
+call()  // 'Hello AAA'
 
-name = 'BBBBBBBBBBBB'             // new name shadows the old name
-call()  // 'Hello AAAAAAAAAAAAA'
+name = 'BBB'                    // new name shadows the old name
+call()  // 'Hello AAA'
 ```
 
-- In Functional Programming like Haskell, SML, OCaml, etc., redefining variable `name` it will not mutate the defined variable
+- In Functional Programming like Haskell, SML, OCaml, etc., 'redefining' variable `name` it will not mutate the defined variable
 - Instead, it will **shadows** the variable `name` (creating a new variable with the same name that maps/references to the new value)
 - Shadowing doesn't mutate the old variable. Rather, in the environment, it will create new variable with the same name and maps into the new value.
-- The old `name` still exist in the environment, which is still maps into **'AAAAAAAAAAA'**
-- The new `name` is created and 'shadows' the old `name`, which is maps into **'BBBBBBBBBBBB'**
+- The old `name` still exist in the environment, which is still maps into **'AAA'**
+- The new `name` is created and 'shadows' the old `name`, which is maps into **'BBB'**
 - This is why, in purely Functional Programming, when you create function like `sayHello`, it will **close** (closure) the environment and the function will look up the Free Variable (like the variable `name`) when the function was defined, not when the function is called
 - As a result, it will use the old name, which is different from JavaScript.
 
 ## Mutate before define `call` function
 
 ```js
-let name = 'AAAAAAAAAAAAA'
+let name = 'AAA'
 
 const sayHello = () => {
   const text = 'Hello, ' + name
   return () => console.log(text)
 }
 
-name = 'BBBBBBBBBBBB'       // <--------- Mutate Here
+name = 'BBB'                // <--------- Mutate Here
 const call = sayHello()
-call()                      // 'Hello BBBBBBBBBBBB'
+call()                      // 'Hello BBB'
 ```
 
 - as you expected
-- it will logs 'Hello BBBBBBBBBBBB' because you mutate it
+- it will logs 'Hello BBB' because you mutate it
 
 ## Correct way to create a closure in JavaScript
 
 ```js
-let name = 'AAAAAAAAAAAAA'
+let name = 'AAA'          // <------ don't use Free Variable,
 
-const sayHello = (name) => {        // <------ don't use Free Variable,
-                                    // instead copy it (as a function parameter)
+const sayHello = (name) => {        // instead copy it (as a function parameter)
   const text = 'Hello, ' + name
   return () => console.log(text)
 }
 
 const call = sayHello(name)        // <------- store the variable as an argument
-call()  // 'Hello AAAAAAAAAAAAA'
+call()  // 'Hello AAA'
 
-name = 'BBBBBBBBBBBB'              // <------- Mutate global variable
-call()  // 'Hello AAAAAAAAAAAAA'
+name = 'BBB'
+call()  // 'Hello AAA'
 ```
 
 In this way:
 
-- `call()` will log 'Hello AAAAAAAAAAAAA'
+- `call()` will log 'Hello AAA'
 - Why? Because `sayHello` function **closes** the environment
-- Because `sayHello` function use the local variable `name` which is copy of the gobal variable `name` (except you store an Object or Array)
+- Because `sayHello` function use the local variable `name` which is copy of the gobal variable `name` (primitive value) (except you store an Object or Array)
 - This is closures in JavaScript
 
-## Other (Closure with Object)
+## Closure with an Object
 
-### Closure with Object (1)
+### Example (1)
 
 ```js
-let name = {qqq: 'OOBBBJJJEEECTTTT'}
+let name = {qqq: 'OBJECT'}
 
 const sayHello = (name) => {
   return () => console.log('Hello', name)
 }
 
 const call = sayHello(name)
-call()    // Hello {qqq: 'OOBBBJJJEEECTTTT'}
+call()    // Hello {qqq: 'OBJECT'}
 
 name.qqq = 'NEW'
 call()    // Hello {qqq: 'NEW'}
 ```
 
-- JavaScript dont copy an Object (or Array) as a function parameter!!!
+- JavaScript don't copy an Object (or Array) as a function parameter!!!
 - make a copy yourself!
 
 
-### Closure with Object (2)
+### Example (2)
 
 ```js
-let name = {qqq: 'OOBBBJJJEEECTTTT'}
+let name = {qqq: 'OBJECT'}
 
 const sayHello = (name) => {
   return () => console.log('Hello', name)
 }
 
 const call = sayHello(name)
-call()    // Hello {qqq: 'OOBBBJJJEEECTTTT'}
+call()    // Hello {qqq: 'OBJECT'}
 
 name = {new: 'NEW VALUE'}
-call()    // Hello {qqq: 'OOBBBJJJEEECTTTT'}
+call()    // Hello {qqq: 'OBJECT'}
 ```
 
 - still reference / maps to garbage!!!, I mean **old object** forever!!!!
 
 
-## Other (Array)
+## Closure with an Array
 
 If you dont copy the array:
 
 ```js
+let name = [7,8,9]
+
+const sayHello = (name) => {      // still references to the same Array!!!
+  return () => console.log(name)
+}
+
+const call = sayHello(name)
+call()                          // [ 7, 8, 9 ]
+
+name[0] = 777
+call()                          // [ 777, 8, 9 ]
+```
+
+```js
 let name0 = [7,8,9]
-let name = name0        // references to the same Array
+let name = name0                // references to the same Array
 
 const sayHello = () => {
   return () => console.log(name)
 }
 
 const call = sayHello()
-call()                  // [ 7, 8, 9 ]
+call()                          // [ 7, 8, 9 ]
 
 name0[0] = 777
-call()                  // [ 777, 8, 9 ]
-```
-
-```js
-let name = [7,8,9]
-
-const sayHello = (name) => { // still references to the same Array
-  return () => console.log(name)
-}
-
-const call = sayHello(name)
-call()                  // [ 7, 8, 9 ]
-
-name[0] = 777
-call()                  // [ 777, 8, 9 ]
+call()                          // [ 777, 8, 9 ]
 ```
 
 If you copy the array:
 
 ```js
 let name = [7,8,9]
-let copy = [...name]    // COPY the Array
+let copy = [...name]            // COPY the Array
 
 const sayHello = () => {
   return () => console.log(copy)
 }
 
 const call = sayHello()
-call()                  // [ 7, 8, 9 ]
+call()                          // [ 7, 8, 9 ]
 
 name[0] = 777
-call()                  // [ 7, 8, 9 ]
+call()                          // [ 7, 8, 9 ]
 ```
 
 ```js
 let name = [7,8,9]
 
 const sayHello = (name) => {
-  const copy = [...name]    // COPY the Array
+  const copy = [...name]        // COPY the Array
   return () => console.log(copy)
 }
 
 const call = sayHello(name)
-call()                  // [ 7, 8, 9 ]
+call()                          // [ 7, 8, 9 ]
 
 name[0] = 777
-call()                  // [ 7, 8, 9 ]
+call()                          // [ 7, 8, 9 ]
 ```
